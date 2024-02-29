@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp", "WebApp\WebApp.csproj", "{74FAEEAC-3D03-4248-9FB6-7FFF43E92070}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Peer2P", "Peer2P\Peer2P.csproj", "{4F091C77-9ACE-45E6-9EB6-6A77744D694A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{74FAEEAC-3D03-4248-9FB6-7FFF43E92070}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74FAEEAC-3D03-4248-9FB6-7FFF43E92070}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74FAEEAC-3D03-4248-9FB6-7FFF43E92070}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74FAEEAC-3D03-4248-9FB6-7FFF43E92070}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F091C77-9ACE-45E6-9EB6-6A77744D694A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F091C77-9ACE-45E6-9EB6-6A77744D694A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F091C77-9ACE-45E6-9EB6-6A77744D694A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F091C77-9ACE-45E6-9EB6-6A77744D694A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
