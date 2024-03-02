@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Configuration;
 
-namespace Peer2P.Lib.Configuration;
+namespace Peer2P.Library.Configuration;
 
-public static class Configurator
+internal static class Configurator
 {
     private static string WorkingDirectory { get; } = Directory.GetCurrentDirectory();
 
