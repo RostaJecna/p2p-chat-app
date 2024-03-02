@@ -68,7 +68,7 @@ internal static class SettingsLoader
             Logger.Log($"An unexpected error occurred while setting up the network interface. Interface ID: [{interfaceId}]")
                 .Type(LogType.Error).Display();
             Logger.Log($"Error message: {exception.Message}").Type(LogType.Error).Display();
-            Logger.Log($"Check if the interface specified in the '{Configurator.ConfigFileName}' config meets the conditions")
+            Logger.Log($"Check if the interface specified in the '{Configurator.ConfigFileName}' config meets the conditions!")
                 .Type(LogType.Warning).Display();
             return false;
         }
