@@ -16,4 +16,6 @@ internal sealed class Peer2PSettings
     public TimingSettings Timing { get; init; }
     
     public NetworkSettings Network { get; set; }
+    
+    private Peer2PSettings() { }
 }
