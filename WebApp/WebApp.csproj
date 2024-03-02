@@ -7,11 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Scripts\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\Peer2P\Peer2P.csproj" />
     </ItemGroup>
-
 </Project>
