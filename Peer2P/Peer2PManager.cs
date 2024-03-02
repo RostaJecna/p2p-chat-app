@@ -14,11 +14,6 @@ public static class Peer2PManager
             return false;
         }
         
-        Logger.Log("The settings were successfully loaded for the Peer2P library.")
-            .Type(LogType.Successful).Display();
-        
-        
-        
         return true;
     }
 }
