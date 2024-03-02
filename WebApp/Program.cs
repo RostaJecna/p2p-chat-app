@@ -1,9 +1,17 @@
+using Peer2P;
+
 namespace WebApp;
 
-public abstract class Program
+internal abstract class Program
 {
     public static void Main(string[] args)
     {
+        if (!Peer2PManager.TryInitialize())
+        {
+            Console.WriteLine("Failed to initialize the Peer2P library manager. Exiting...");
+            return;
+        }
+        
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddRazorPages();
