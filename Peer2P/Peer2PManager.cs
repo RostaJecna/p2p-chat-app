@@ -16,6 +16,13 @@ public static class Peer2PManager
             return false;
         }
         
+        Logger.Log("Starting Peer2P services with the following settings:")
+            .Type(LogType.Expecting).Display();
+        Logger.Log($"\tIP: {Peer2PSettings.Instance.Network.IpAddress}," +
+                   $"\n\tSubnet: {Peer2PSettings.Instance.Network.SubnetMask}," +
+                   $"\n\tBroadcast: {Peer2PSettings.Instance.Network.Broadcast}")
+            .Display();
+        
         try
         {
             UdpDiscovery.SendPeriodicAsync(NetMessages.ReqResPair.Command, cancellationToken);
@@ -25,7 +32,7 @@ public static class Peer2PManager
         }
         catch (Exception ex)
         {
-            Logger.Log($"An unexpected error occurred while running services in the Peer2P library: {ex.Message}")
+            Logger.Log($"An unexpected error occurred while starting services in the Peer2P library: {ex.Message}")
                 .Type(LogType.Error).Display();
             UdpDiscovery.Dispose();
             return false;
