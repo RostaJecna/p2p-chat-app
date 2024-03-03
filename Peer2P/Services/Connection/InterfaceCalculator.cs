@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.NetworkInformation;
 
-namespace Peer2P.Services.Network;
+namespace Peer2P.Services.Connection;
 
 internal static class InterfaceCalculator
 {
