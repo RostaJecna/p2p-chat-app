@@ -7,7 +7,7 @@ using Peer2P.Library.Console.Messaging;
 
 namespace Peer2P.Services.Connection.Handlers;
 
-public static class UdpHandler
+internal static class UdpHandler
 {
     public static void Handle(string? received, IPAddress sender)
     {
