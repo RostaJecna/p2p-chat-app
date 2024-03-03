@@ -1,6 +1,7 @@
 using System.Net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Peer2P.Library.Collections;
 using Peer2P.Library.Connection;
 using Peer2P.Library.Connection.Json;
 using Peer2P.Library.Console.Messaging;
@@ -9,6 +10,8 @@ namespace Peer2P.Services.Connection.Handlers;
 
 internal static class UdpHandler
 {
+    public static readonly TimeStorage<Peer> TrustedPeers = new();
+    
     public static void Handle(string? received, IPAddress sender)
     {
         try
@@ -84,11 +87,33 @@ internal static class UdpHandler
     
     private static void HandleCommand(Peer peer)
     {
-        throw new NotImplementedException();
+        TrustedPeers.Add(peer);
     }
 
     private static void HandleStatus(Peer peer)
     {
-        throw new NotImplementedException();
+        TrustedPeers.Add(peer);
+    }
+
+    public static async void HandlePeriodicTrustedPeersAsync(CancellationToken cancellationToken)
+    {
+        int interval = Peer2PSettings.Instance.Timing.UdpDiscoveryInterval * 3;
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            if (TrustedPeers.Count == 0) await Task.Delay(interval, cancellationToken);
+            
+            foreach (Peer peer in TrustedPeers.Keys.Where(peer => TrustedPeers.GetTimeDifference(peer) > interval))
+            {
+                TrustedPeers.Remove(peer);
+                Logger.Log($"Removed peer {peer} from trusted list due to inactivity!")
+                    .Type(LogType.Warning).Protocol(LogProtocol.Udp).Display();
+            }
+            
+            string peers = string.Join(", ", TrustedPeers);
+            Logger.Log($"Trusted peers ({TrustedPeers.Count}) - {peers}")
+                .Type(LogType.Expecting).Display();
+
+            await Task.Delay(interval, cancellationToken);
+        }
     }
 }
