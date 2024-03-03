@@ -7,7 +7,7 @@ namespace Peer2P.Services.Connection;
 
 internal static class UdpDiscovery
 {
-    private static readonly UdpClient UdpClient = new(Peer2PSettings.Instance.Network.Broadcast.Port)
+    private static readonly UdpClient UdpClient = new(Peer2PSettings.Instance.Communication.BroadcastPort)
     {
         EnableBroadcast = true
     };
