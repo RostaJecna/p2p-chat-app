@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Peer2P.Library.Configuration;
 using Peer2P.Library.Configuration.Settings;
 using Peer2P.Library.Console.Messaging;
-using Peer2P.Services.Network;
+using Peer2P.Services.Connection;
 
 namespace Peer2P.Services;
 
