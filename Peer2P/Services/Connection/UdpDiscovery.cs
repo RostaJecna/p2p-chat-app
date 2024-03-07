@@ -13,6 +13,11 @@ internal static class UdpDiscovery
     };
     
     private static bool _disposed;
+    
+    private static void LogDiscoveryMessage(string message, LogType type)
+    {
+        Logger.Log(message).Type(type).Protocol(LogProtocol.Udp).Display();
+    }
 
     public static async void SendPeriodicAsync(string message, CancellationToken cancellationToken)
     {
@@ -27,16 +32,14 @@ internal static class UdpDiscovery
             {
                 UdpClient.Send(data, Peer2PSettings.Instance.Network.Broadcast);
 
-                Logger.Log($"Sent broadcast discovery: {message}")
-                    .Type(LogType.Sent).Protocol(LogProtocol.Udp).Display();
+                LogDiscoveryMessage($"Sent broadcast discovery: {message}", LogType.Sent);
 
                 await Task.Delay(Peer2PSettings.Instance.Timing.UdpDiscoveryInterval, cancellationToken);
             }
         }
         catch (Exception ex)
         {
-            Logger.Log($"Error sending {nameof(UdpDiscovery)} message: {ex.Message}")
-                .Type(LogType.Error).Protocol(LogProtocol.Udp).Display();
+            LogDiscoveryMessage($"Error sending {nameof(UdpDiscovery)} message: {ex.Message}", LogType.Error);
         }
     }
     
@@ -57,13 +60,11 @@ internal static class UdpDiscovery
             }
             catch (OperationCanceledException)
             {
-                Logger.Log($"Receiving data operation from {nameof(UdpDiscovery)} canceled.")
-                    .Type(LogType.Warning).Protocol(LogProtocol.Udp).Display();
+                LogDiscoveryMessage($"Receiving data operation from {nameof(UdpDiscovery)} canceled.", LogType.Warning);
             }
             catch (Exception ex)
             {
-                Logger.Log($"Error in {nameof(UdpDiscovery)} when receiving data: {ex.Message}")
-                    .Type(LogType.Error).Protocol(LogProtocol.Udp).Display();
+                LogDiscoveryMessage($"Error in {nameof(UdpDiscovery)} when receiving data: {ex.Message}", LogType.Error);
             }
         }
     }
@@ -81,8 +82,7 @@ internal static class UdpDiscovery
         {
             UdpClient.Dispose();
             
-            Logger.Log($"{nameof(UdpDiscovery)} is disposed.")
-                .Type(LogType.Warning).Protocol(LogProtocol.Udp).Display();
+            LogDiscoveryMessage($"{nameof(UdpDiscovery)} is disposed.", LogType.Warning);
         }
 
         _disposed = true;
