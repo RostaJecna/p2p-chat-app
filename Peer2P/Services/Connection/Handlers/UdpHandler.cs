@@ -60,7 +60,7 @@ internal static class UdpHandler
             if (command != null && command.Command == Peer2PSettings.Instance.Communication.Commands.OnRequest)
             {
                 LogUdpMessage($"Received command message from {peer}: {command.Command}", LogType.Received);
-                HandleCommand(peer, cancellationToken);
+                HandleCommand(peer);
                 return;
             }
 
@@ -72,7 +72,7 @@ internal static class UdpHandler
             if (status != null && status.Status == Peer2PSettings.Instance.Communication.Status.OnResponse)
             {
                 LogUdpMessage($"Received status message from {peer}: {status.Status}", LogType.Received);
-                HandleStatus(peer);
+                HandleStatus(peer, cancellationToken);
                 return;
             }
 
@@ -84,19 +84,19 @@ internal static class UdpHandler
         }
     }
 
-    private static void HandleCommand(Peer peer, CancellationToken cancellationToken)
+    private static void HandleCommand(Peer peer)
     {
         TrustedPeers.Add(peer);
+    }
 
+    private static void HandleStatus(Peer peer, CancellationToken cancellationToken)
+    {
+        TrustedPeers.Add(peer);
+        
         if (!TcpHandler.HasConnectionWith(peer.Address))
             TcpHandler.TryCreateTcpClientAsync(peer, cancellationToken);
         else
             LogUdpMessage($"Tcp connection with {peer} already exists.", LogType.Warning);
-    }
-
-    private static void HandleStatus(Peer peer)
-    {
-        TrustedPeers.Add(peer);
     }
 
     public static async void HandlePeriodicTrustedPeersAsync(CancellationToken cancellationToken)
@@ -118,5 +118,10 @@ internal static class UdpHandler
 
             await Task.Delay(interval, cancellationToken);
         }
+    }
+    
+    public static string? GetPeerIdByAddress(IPAddress address)
+    {
+        return TrustedPeers.Keys.FirstOrDefault(peer => peer.Address.Equals(address))?.Id;
     }
 }
