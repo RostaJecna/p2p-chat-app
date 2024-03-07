@@ -36,6 +36,6 @@ internal static class NetworkData
             AllMessages[message.Key] = message.Value;
         }
 
-        AllMessages = (Dictionary<long, PeerMessage>)AllMessages.Take(100);
+        AllMessages = AllMessages.Take(100).ToDictionary(pair => pair.Key, pair => pair.Value);
     }
 }
