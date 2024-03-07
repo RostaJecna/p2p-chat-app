@@ -1,4 +1,3 @@
-using Peer2P.Library.Connection;
 using Peer2P.Library.Console.Messaging;
 using Peer2P.Services;
 using Peer2P.Services.Connection;
@@ -26,6 +25,7 @@ public static class Peer2PManager
         
         try
         {
+            TcpHandler.StartListeningAsync(cancellationToken);
             UdpHandler.HandlePeriodicTrustedPeersAsync(cancellationToken);
 
             UdpDiscovery.SendPeriodicAsync(NetMessages.ReqResPair.Command, cancellationToken);
