@@ -11,83 +11,87 @@ namespace Peer2P.Services.Connection.Handlers;
 internal static class UdpHandler
 {
     public static readonly TimeStorage<Peer> TrustedPeers = new();
-    
-    public static void Handle(string? received, IPAddress sender)
+
+    private static void LogUdpMessage(string message, LogType type)
+    {
+        Logger.Log(message).Type(type).Protocol(LogProtocol.Udp).Display();
+    }
+
+    public static void Handle(string? received, IPAddress sender, CancellationToken cancellationToken)
     {
         try
         {
             if (string.IsNullOrEmpty(received))
             {
-                Logger.Log($"Received empty or null message from [{sender}]")
-                    .Type(LogType.Warning).Protocol(LogProtocol.Udp).Display();
+                LogUdpMessage($"Received empty or null message from [{sender}]", LogType.Warning);
                 return;
             }
-            
-            HandleMessage(JObject.Parse(received), sender);
+
+            JObject jReceived = JObject.Parse(received);
+            HandleMessage(jReceived, sender, cancellationToken);
         }
         catch (JsonException ex)
         {
-            Logger.Log($"Error deserializing JSON from [{sender}]: {ex.Message}")
-                .Type(LogType.Error).Protocol(LogProtocol.Udp).Display();
+            LogUdpMessage($"Error parsing to {nameof(JObject)} from [{sender}]: {ex.Message}", LogType.Error);
         }
         catch (Exception ex)
         {
-            Logger.Log($"Unexpected error processing message from [{sender}]: {ex.Message}")
-                .Type(LogType.Error).Protocol(LogProtocol.Udp).Display();
+            LogUdpMessage($"Got unexpected error processing message from [{sender}]: {ex.Message}", LogType.Error);
         }
     }
 
-    private static void HandleMessage(JObject message, IPAddress sender)
+    private static void HandleMessage(JObject jMessage, IPAddress sender, CancellationToken cancellationToken)
     {
-        string? peerId = message["peer_id"]?.Value<string>();
+        string? peerId = jMessage["peer_id"]?.Value<string>();
+        string jMessageFormatted = jMessage.ToString(Formatting.None);
 
         if (string.IsNullOrWhiteSpace(peerId))
         {
-            Logger.Log($"Received message from [{sender}] with invalid peer id: {message.ToString(Formatting.None)}")
-                .Type(LogType.Warning).Protocol(LogProtocol.Udp).Display();
+            LogUdpMessage($"Received message from [{sender}] with invalid peer id: {jMessageFormatted}",
+                LogType.Warning);
             return;
         }
 
         Peer peer = new(peerId, sender);
-        
-        if (message["command"] != null)
+
+        if (jMessage["command"] != null)
         {
-            CommandMessage? command = message.ToObject<CommandMessage>();
+            CommandMessage? command = jMessage.ToObject<CommandMessage>();
             if (command != null && command.Command == Peer2PSettings.Instance.Communication.Commands.OnRequest)
             {
-                Logger.Log($"Received command message from {peer}: {command.Command}")
-                    .Type(LogType.Received).Protocol(LogProtocol.Udp).Display();
-                HandleCommand(peer);
+                LogUdpMessage($"Received command message from {peer}: {command.Command}", LogType.Received);
+                HandleCommand(peer, cancellationToken);
                 return;
             }
 
-            Logger.Log($"Received invalid command message from {peer}: {message.ToString(Formatting.None)}")
-                .Type(LogType.Received).Protocol(LogProtocol.Udp).Display();
+            LogUdpMessage($"Received invalid command message from {peer}: {jMessageFormatted}", LogType.Received);
         }
-        else if (message["status"] != null)
+        else if (jMessage["status"] != null)
         {
-            StatusMessage? status = message.ToObject<StatusMessage>();
+            StatusMessage? status = jMessage.ToObject<StatusMessage>();
             if (status != null && status.Status == Peer2PSettings.Instance.Communication.Status.OnResponse)
             {
-                Logger.Log($"Received status message from {peer}: {status.Status}")
-                    .Type(LogType.Received).Protocol(LogProtocol.Udp).Display();
+                LogUdpMessage($"Received status message from {peer}: {status.Status}", LogType.Received);
                 HandleStatus(peer);
                 return;
             }
 
-            Logger.Log($"Received invalid status message from {peer}: {message.ToString(Formatting.None)}")
-                .Type(LogType.Received).Protocol(LogProtocol.Udp).Display();
+            LogUdpMessage($"Received invalid status message from {peer}: {jMessageFormatted}", LogType.Received);
         }
         else
         {
-            Logger.Log($"Received unknown message type from {peer}: {message.ToString(Formatting.None)}")
-                .Type(LogType.Received).Protocol(LogProtocol.Udp).Display();
+            LogUdpMessage($"Received unknown message type from {peer}: {jMessageFormatted}", LogType.Received);
         }
     }
-    
-    private static void HandleCommand(Peer peer)
+
+    private static void HandleCommand(Peer peer, CancellationToken cancellationToken)
     {
         TrustedPeers.Add(peer);
+
+        if (!TcpHandler.HasConnectionWith(peer.Address))
+            TcpHandler.TryCreateTcpClientAsync(peer, cancellationToken);
+        else
+            LogUdpMessage($"Tcp connection with {peer} already exists.", LogType.Warning);
     }
 
     private static void HandleStatus(Peer peer)
@@ -101,17 +105,16 @@ internal static class UdpHandler
         while (!cancellationToken.IsCancellationRequested)
         {
             if (TrustedPeers.Count == 0) await Task.Delay(interval, cancellationToken);
-            
-            foreach (Peer peer in TrustedPeers.Keys.Where(peer => TrustedPeers.GetTimeDifference(peer) > interval))
+
+            foreach (Peer peer in TrustedPeers.Keys.Where(peer =>
+                         TrustedPeers.GetTimeDifferenceMilliseconds(peer) > interval))
             {
                 TrustedPeers.Remove(peer);
-                Logger.Log($"Removed peer {peer} from trusted list due to inactivity!")
-                    .Type(LogType.Warning).Protocol(LogProtocol.Udp).Display();
+                LogUdpMessage($"Removed peer {peer} from trusted list due to inactivity!", LogType.Warning);
             }
-            
+
             string peers = string.Join(", ", TrustedPeers);
-            Logger.Log($"Trusted peers ({TrustedPeers.Count}) - {peers}")
-                .Type(LogType.Expecting).Display();
+            LogUdpMessage($"Trusted peers ({TrustedPeers.Count}) - {peers}", LogType.Expecting);
 
             await Task.Delay(interval, cancellationToken);
         }
