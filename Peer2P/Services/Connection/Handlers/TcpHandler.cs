@@ -207,7 +207,7 @@ internal static class TcpHandler
             LogTcpMessage($"Received status from {peer} with messages ...?: " +
                           $"{tcpMessages.Status} - [{tcpMessages.Messages.Count}x]", LogType.Received);
             
-            NetworkData.MergeMessages(tcpMessages.Messages.Take(100));
+            NetworkData.MergeMessages(tcpMessages.Messages);
 
             LogTcpMessage($"Successful handshake with {peer}: Send to storage...", LogType.Successful);
 
