@@ -28,6 +28,61 @@ internal static class TcpHandler
     {
         return ConnectedClients.Any(pair => pair.Key.IsStillConnected() && pair.Key.IsSameIpv4Address(ipAddress));
     }
+    
+    public static async void StartCheckConnectedClientsAsync(CancellationToken cancellationToken)
+    {
+        int timeout = Peer2PSettings.Instance.Timing.ClientTimeoutDelay;
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                foreach (KeyValuePair<TcpClient, DateTime> pair in ConnectedClients.Where(pair => !pair.Key.IsStillConnected()))
+                {
+                    try
+                    {
+                        IPEndPoint? keyEndPoint = pair.Key.GetIpv4EndPoint();
+
+                        if (keyEndPoint is not null)
+                        {
+                            string? peerId = UdpHandler.GetPeerIdByAddress(keyEndPoint.Address);
+                            string target = peerId ?? keyEndPoint.ToString();
+                            LogTcpMessage($"Lost connection with {target}: Disposing...", LogType.Warning);
+                        }
+                        
+                        pair.Key.Dispose();
+                        ConnectedClients.Remove(pair.Key);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogTcpMessage($"Error handling lost connection: {ex.Message}", LogType.Error);
+                    }
+                }
+
+                try
+                {
+                    string clients = string.Join(", ", ConnectedClients.Keys.Select(client =>
+                    {
+                        IPEndPoint? endPoint = client.GetIpv4EndPoint();
+                        string? peerId = endPoint != null ? UdpHandler.GetPeerIdByAddress(endPoint.Address) : null;
+                        if (peerId is not null) return $"({peerId}) - [{endPoint}]";
+                        return endPoint?.ToString() ?? "Unknown";
+                    }));
+
+                    LogTcpMessage($"Current connections with ({ConnectedClients.Count}) - {clients}", LogType.Expecting);
+                }
+                catch (Exception ex)
+                {
+                    LogTcpMessage($"Error logging current connections: {ex.Message}", LogType.Error);
+                }
+
+                await Task.Delay(timeout, cancellationToken);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogTcpMessage($"Error while checking connected clients: {ex.Message}", LogType.Error);
+        }
+    }
 
     public static async void StartListeningAsync(CancellationToken cancellationToken)
     {
@@ -63,6 +118,11 @@ internal static class TcpHandler
         {
             LogTcpMessage($"An error occurred while listening for tcp clients: {ex.Message}", LogType.Error);
         }
+    }
+
+    private static void ListenConnectedClientAsync(TcpClient client, NetworkStream stream)
+    {
+        // throw new NotImplementedException();
     }
 
     private static async void HandleAcceptedClientAsync(TcpClient client, Peer peer,
@@ -107,13 +167,10 @@ internal static class TcpHandler
             await stream.WriteAsync(responseBytes, cancellationToken);
 
             LogTcpMessage($"Sent messages to {peer}: [{NetworkData.AllMessages.Count}x]", LogType.Sent);
-            LogTcpMessage($"Successful handshake with {peer}: Send to storage...", LogType.Successful);
+            LogTcpMessage($"Successful handshake with accepted {peer}: Send to storage...", LogType.Successful);
 
             ConnectedClients.Add(client);
-
-            // ListenClientsForNewMessageAsync(client);
-
-            stream.Close();
+            ListenConnectedClientAsync(client, stream);
         }
         catch (Exception ex)
         {
@@ -210,13 +267,10 @@ internal static class TcpHandler
 
             NetworkData.MergeMessages(tcpMessages.Messages);
 
-            LogTcpMessage($"Successful handshake with {peer}: Send to storage...", LogType.Successful);
+            LogTcpMessage($"Successful handshake with created {peer}: Send to storage...", LogType.Successful);
 
             ConnectedClients.Add(client);
-
-            // ListenClientsForNewMessageAsync(client);
-
-            stream.Close();
+            ListenConnectedClientAsync(client, stream);
         }
         catch (Exception ex)
         {
