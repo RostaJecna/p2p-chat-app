@@ -12,7 +12,7 @@ public class TimeStorage<TKey> : Dictionary<TKey, DateTime> where TKey : notnull
         }
     }
 
-    public double GetTimeDifference(TKey key)
+    public double GetTimeDifferenceMilliseconds(TKey key)
     {
         lock (_lockObject)
         {
