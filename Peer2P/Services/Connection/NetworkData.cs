@@ -3,7 +3,7 @@ using Peer2P.Library.Connection.Json;
 
 namespace Peer2P.Services.Connection;
 
-internal static class NetMessages
+internal static class NetworkData
 {
     public static Dictionary<long, PeerMessage> AllMessages { get; } = new();
         

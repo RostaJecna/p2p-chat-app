@@ -98,12 +98,12 @@ internal static class TcpHandler
 
             LogTcpMessage($"Received command from {peer}: {commandMessage.Command}", LogType.Received);
 
-            string allMessagesWithStatus = NetMessages.SerializeAllMessagesWithStatus();
+            string allMessagesWithStatus = NetworkData.SerializeAllMessagesWithStatus();
 
             byte[] responseBytes = Encoding.UTF8.GetBytes(allMessagesWithStatus + "\n");
             await stream.WriteAsync(responseBytes, cancellationToken);
 
-            LogTcpMessage($"Sent messages to {peer}: [{NetMessages.AllMessages.Count}x]", LogType.Sent);
+            LogTcpMessage($"Sent messages to {peer}: [{NetworkData.AllMessages.Count}x]", LogType.Sent);
             LogTcpMessage($"Successful handshake with {peer}: Send to storage...", LogType.Successful);
 
             ConnectedClients.Add(client);
@@ -147,9 +147,9 @@ internal static class TcpHandler
             
             NetworkStream stream = client.GetStream();
             
-            await stream.WriteAsync(Encoding.UTF8.GetBytes(NetMessages.ReqResPair.Command + "\n"), cancellationToken);
+            await stream.WriteAsync(Encoding.UTF8.GetBytes(NetworkData.ReqResPair.Command + "\n"), cancellationToken);
             
-            LogTcpMessage($"Sent command to {peer}: {NetMessages.ReqResPair.Command}", LogType.Sent);
+            LogTcpMessage($"Sent command to {peer}: {NetworkData.ReqResPair.Command}", LogType.Sent);
             LogTcpMessage($"Waiting for response from {peer}: ...?", LogType.Expecting);
             
             // TODO: Use memory read buffer
@@ -207,7 +207,7 @@ internal static class TcpHandler
             LogTcpMessage($"Received status from {peer} with messages ...?: " +
                           $"{tcpMessages.Status} - [{tcpMessages.Messages.Count}x]", LogType.Received);
             
-            NetMessages.MergeMessages(tcpMessages.Messages.Take(100));
+            NetworkData.MergeMessages(tcpMessages.Messages.Take(100));
 
             LogTcpMessage($"Successful handshake with {peer}: Send to storage...", LogType.Successful);
 
