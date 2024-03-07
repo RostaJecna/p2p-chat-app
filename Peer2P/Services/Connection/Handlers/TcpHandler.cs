@@ -16,14 +16,14 @@ internal static class TcpHandler
         Peer2PSettings.Instance.Network.IpAddress,
         Peer2PSettings.Instance.Communication.BroadcastPort
     );
-    
+
     private static readonly TimeStorage<TcpClient> ConnectedClients = new();
 
     private static void LogTcpMessage(string message, LogType type)
     {
         Logger.Log(message).Type(type).Protocol(LogProtocol.Tcp).Display();
     }
-    
+
     public static bool HasConnectionWith(IPAddress ipAddress)
     {
         return ConnectedClients.Any(pair => pair.Key.IsStillConnected() && pair.Key.IsSameIpv4Address(ipAddress));
@@ -32,26 +32,28 @@ internal static class TcpHandler
     public static async void StartListeningAsync(CancellationToken cancellationToken)
     {
         TcpListener.Start();
-        
+
         try
         {
             while (!cancellationToken.IsCancellationRequested)
             {
                 TcpClient acceptedClient = await TcpListener.AcceptTcpClientAsync(cancellationToken);
                 IPEndPoint? clientIpEndPoint = acceptedClient.GetIpv4EndPoint();
-                
-                LogTcpMessage($"Listener accepted unknown client [{clientIpEndPoint}]: Trying identify ...?", LogType.Expecting);
+
+                LogTcpMessage($"Listener accepted unknown client [{clientIpEndPoint}]: Trying identify ...?",
+                    LogType.Expecting);
 
                 Peer? peer = UdpHandler.TrustedPeers
                     .FirstOrDefault(kvp => acceptedClient.IsSameIpv4Address(kvp.Key.Address)).Key;
 
                 if (peer is null)
                 {
-                    LogTcpMessage($"Skip accepted client [{clientIpEndPoint}]. Is not in trusted peers.", LogType.Warning);
+                    LogTcpMessage($"Skip accepted client [{clientIpEndPoint}]. Is not in trusted peers.",
+                        LogType.Warning);
                     acceptedClient.Dispose();
                     continue;
                 }
-                
+
                 LogTcpMessage($"Successfully identified unknown client as: {peer}", LogType.Successful);
 
                 HandleAcceptedClientAsync(acceptedClient, peer, cancellationToken);
@@ -63,7 +65,8 @@ internal static class TcpHandler
         }
     }
 
-    private static async void HandleAcceptedClientAsync(TcpClient client, Peer peer, CancellationToken cancellationToken)
+    private static async void HandleAcceptedClientAsync(TcpClient client, Peer peer,
+        CancellationToken cancellationToken)
     {
         try
         {
@@ -109,7 +112,7 @@ internal static class TcpHandler
             ConnectedClients.Add(client);
 
             // ListenClientsForNewMessageAsync(client);
-            
+
             stream.Close();
         }
         catch (Exception ex)
@@ -124,7 +127,7 @@ internal static class TcpHandler
         try
         {
             LogTcpMessage($"Trying to create {peer}: As TCP client...", LogType.Expecting);
-            
+
             TcpClient client = new();
 
             // ReSharper disable once MethodSupportsCancellation
@@ -140,18 +143,18 @@ internal static class TcpHandler
                 client.Dispose();
                 return;
             }
-            
+
             await connectTask;
 
             LogTcpMessage($"Successfully created {peer}: (As TCP client)", LogType.Successful);
-            
+
             NetworkStream stream = client.GetStream();
-            
+
             await stream.WriteAsync(Encoding.UTF8.GetBytes(NetworkData.ReqResPair.Command + "\n"), cancellationToken);
-            
+
             LogTcpMessage($"Sent command to {peer}: {NetworkData.ReqResPair.Command}", LogType.Sent);
             LogTcpMessage($"Waiting for response from {peer}: ...?", LogType.Expecting);
-            
+
             // TODO: Use memory read buffer
             byte[] buffer = new byte[12288];
             Task<int> readTask = stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
@@ -163,14 +166,12 @@ internal static class TcpHandler
                 client.Dispose();
                 return;
             }
-            
+
             int bytesRead = await readTask;
             string response = Encoding.UTF8.GetString(buffer, 0, bytesRead);
 
-            LogTcpMessage($"Received response from {peer}", LogType.Received);
-
             TcpMessages? tcpMessages;
-            
+
             try
             {
                 tcpMessages = JsonConvert.DeserializeObject<TcpMessages>(response);
@@ -182,44 +183,45 @@ internal static class TcpHandler
                 client.Dispose();
                 return;
             }
-            
-            if(tcpMessages is null)
+
+            if (tcpMessages is null)
             {
                 LogTcpMessage($"Received invalid response from {peer}: {response}", LogType.Error);
                 client.Dispose();
                 return;
             }
-            
-            if(tcpMessages.Status != Peer2PSettings.Instance.Communication.Status.OnResponse)
+
+            if (tcpMessages.Status != Peer2PSettings.Instance.Communication.Status.OnResponse)
             {
                 LogTcpMessage($"Received invalid status message from {peer}: {tcpMessages.Status}", LogType.Received);
                 client.Dispose();
                 return;
             }
-            
-            if(tcpMessages.Messages == null || tcpMessages.Messages.Count == 0)
+
+            if (tcpMessages.Messages == null || tcpMessages.Messages.Count == 0)
             {
                 LogTcpMessage($"Received empty messages from {peer}.", LogType.Received);
                 client.Dispose();
                 return;
             }
-            
+
             LogTcpMessage($"Received status from {peer} with messages ...?: " +
                           $"{tcpMessages.Status} - [{tcpMessages.Messages.Count}x]", LogType.Received);
-            
+
             NetworkData.MergeMessages(tcpMessages.Messages);
 
             LogTcpMessage($"Successful handshake with {peer}: Send to storage...", LogType.Successful);
 
             ConnectedClients.Add(client);
-            
+
             // ListenClientsForNewMessageAsync(client);
-            
+
             stream.Close();
         }
         catch (Exception ex)
         {
-            LogTcpMessage($"An error occurred while trying to create {peer}: As TCP client: {ex.Message}", LogType.Error);
+            LogTcpMessage($"An unexpected error occurred while trying to create {peer} (As TCP client): {ex.Message}",
+                LogType.Error);
         }
     }
 }
