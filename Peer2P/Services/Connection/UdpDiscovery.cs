@@ -53,7 +53,7 @@ internal static class UdpDiscovery
                 if (Equals(Peer2PSettings.Instance.Network.IpAddress, result.RemoteEndPoint.Address)) continue;
 
                 string message = Encoding.UTF8.GetString(data);
-                UdpHandler.Handle(message, result.RemoteEndPoint.Address);
+                UdpHandler.Handle(message, result.RemoteEndPoint.Address, cancellationToken);
             }
             catch (OperationCanceledException)
             {
