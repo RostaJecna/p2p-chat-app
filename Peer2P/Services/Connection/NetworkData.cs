@@ -5,7 +5,7 @@ namespace Peer2P.Services.Connection;
 
 internal static class NetworkData
 {
-    public static Dictionary<long, PeerMessage> AllMessages { get; } = new();
+    public static Dictionary<long, PeerMessage> AllMessages { get; private set; } = new();
         
     public static readonly (string Command, string Status) ReqResPair = (
         JsonConvert.SerializeObject(new CommandMessage
@@ -31,9 +31,11 @@ internal static class NetworkData
     
     public static void MergeMessages(IEnumerable<KeyValuePair<long, PeerMessage>> messages)
     {
-        foreach (KeyValuePair<long, PeerMessage> message in messages)
+        foreach (KeyValuePair<long, PeerMessage> message in messages.Take(100))
         {
             AllMessages[message.Key] = message.Value;
         }
+
+        AllMessages = (Dictionary<long, PeerMessage>)AllMessages.Take(100);
     }
 }
