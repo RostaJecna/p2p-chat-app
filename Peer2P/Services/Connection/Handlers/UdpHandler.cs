@@ -86,14 +86,14 @@ internal static class UdpHandler
 
     private static void HandleCommand(Peer peer)
     {
-        TrustedPeers.Add(peer);
+        TrustedPeers.Store(peer);
     }
 
     private static void HandleStatus(Peer peer, CancellationToken cancellationToken)
     {
-        TrustedPeers.Add(peer);
+        TrustedPeers.Store(peer);
         
-        if (!TcpHandler.HasConnectionWith(peer.Address))
+        if (!TcpConnections.HasConnectionWith(peer.Address))
             TcpHandler.TryCreateTcpClientAsync(peer, cancellationToken);
         else
             LogUdpMessage($"Tcp connection with {peer} already exists.", LogType.Warning);
@@ -113,7 +113,7 @@ internal static class UdpHandler
             foreach (Peer peer in TrustedPeers.Keys.Where(peer =>
                          TrustedPeers.GetTimeDifferenceMilliseconds(peer) > interval))
             {
-                TrustedPeers.Remove(peer);
+                TrustedPeers.TryRemove(peer, out _);
                 LogUdpMessage($"Removed peer {peer} from trusted list due to inactivity!", LogType.Warning);
             }
 
