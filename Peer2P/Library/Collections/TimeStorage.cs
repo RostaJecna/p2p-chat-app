@@ -1,22 +1,22 @@
+using System.Collections.Concurrent;
+
 namespace Peer2P.Library.Collections;
 
-public class TimeStorage<TKey> : Dictionary<TKey, DateTime> where TKey : notnull
+public class TimeStorage<TKey> : ConcurrentDictionary<TKey, DateTime> where TKey : notnull
 {
-    private readonly object _lockObject = new();
-
-    public void Add(TKey key)
+    public void Store(TKey key)
     {
-        lock (_lockObject)
-        {
-            this[key] = DateTime.Now;
-        }
+        AddOrUpdate(key, _ => DateTime.UtcNow, (_, _) => DateTime.UtcNow);
     }
 
     public double GetTimeDifferenceMilliseconds(TKey key)
     {
-        lock (_lockObject)
+        if (TryGetValue(key, out DateTime storedTime))
         {
-            return (DateTime.Now - this[key]).TotalMilliseconds;
+            TimeSpan elapsedTime = DateTime.UtcNow - storedTime;
+            return elapsedTime.TotalMilliseconds;
         }
+    
+        throw new KeyNotFoundException($"Key '{key}' not found in {nameof(TimeStorage<TKey>)}.");
     }
 }
