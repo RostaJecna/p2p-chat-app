@@ -24,9 +24,9 @@ internal static class TcpHandler
         Logger.Log(message).Type(type).Protocol(LogProtocol.Tcp).Display();
     }
 
-    public static bool HasConnectionWith(IPAddress ipAddress)
+    public static bool HasConnectionWith(IPAddress? ipAddress)
     {
-        return ConnectedClients.Any(pair => pair.Key.IsStillConnected() && pair.Key.IsSameIpv4Address(ipAddress));
+        return ipAddress is not null && ConnectedClients.Any(pair => pair.Key.IsStillConnected() && pair.Key.IsSameIpv4Address(ipAddress));
     }
     
     public static async void StartCheckConnectedClientsAsync(CancellationToken cancellationToken)
@@ -36,6 +36,12 @@ internal static class TcpHandler
         {
             while (!cancellationToken.IsCancellationRequested)
             {
+                if(ConnectedClients.Count == 0)
+                {
+                    await Task.Delay(timeout, cancellationToken);
+                    continue;
+                }
+                
                 foreach (KeyValuePair<TcpClient, DateTime> pair in ConnectedClients.Where(pair => !pair.Key.IsStillConnected()))
                 {
                     try
@@ -100,7 +106,7 @@ internal static class TcpHandler
 
                 Peer? peer = UdpHandler.TrustedPeers
                     .FirstOrDefault(kvp => acceptedClient.IsSameIpv4Address(kvp.Key.Address)).Key;
-
+                
                 if (peer is null)
                 {
                     LogTcpMessage($"Skip accepted client [{clientIpEndPoint}]. Is not in trusted peers.",
@@ -110,6 +116,11 @@ internal static class TcpHandler
                 }
 
                 LogTcpMessage($"Successfully identified unknown client as: {peer}", LogType.Successful);
+                
+                if (HasConnectionWith(clientIpEndPoint?.Address))
+                {
+                    LogTcpMessage($"Successfully identified unknown client as: {peer}", LogType.Warning);
+                }
 
                 HandleAcceptedClientAsync(acceptedClient, peer, cancellationToken);
             }

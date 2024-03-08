@@ -104,7 +104,11 @@ internal static class UdpHandler
         int interval = Peer2PSettings.Instance.Timing.UdpDiscoveryInterval * 3;
         while (!cancellationToken.IsCancellationRequested)
         {
-            if (TrustedPeers.Count == 0) await Task.Delay(interval, cancellationToken);
+            if (TrustedPeers.Count == 0)
+            {
+                await Task.Delay(interval, cancellationToken);
+                continue;
+            }
 
             foreach (Peer peer in TrustedPeers.Keys.Where(peer =>
                          TrustedPeers.GetTimeDifferenceMilliseconds(peer) > interval))
