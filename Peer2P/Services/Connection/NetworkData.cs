@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Peer2P.Library.Connection;
 using Peer2P.Library.Connection.Json;
 
 namespace Peer2P.Services.Connection;
@@ -7,7 +8,7 @@ internal static class NetworkData
 {
     public static Dictionary<long, PeerMessage> AllMessages { get; private set; } = new();
         
-    public static readonly (string Command, string Status) ReqResPair = (
+    public static readonly (string Command, string Status, string EmptyStatus) ReqResPair = (
         JsonConvert.SerializeObject(new CommandMessage
         {
             Command = Peer2PSettings.Instance.Communication.Commands.OnRequest,
@@ -17,6 +18,10 @@ internal static class NetworkData
         {
             Status = Peer2PSettings.Instance.Communication.Status.OnResponse,
             PeerId = Peer2PSettings.Instance.Global.AppPeerId
+        }),
+        JsonConvert.SerializeObject(new StatusMessage
+        {
+            Status = Peer2PSettings.Instance.Communication.Status.OnResponse,
         })
     );
     
@@ -37,5 +42,14 @@ internal static class NetworkData
         }
 
         AllMessages = AllMessages.Take(100).ToDictionary(pair => pair.Key, pair => pair.Value);
+    }
+    
+    public static void AddMessage(NewMessage message, Peer peer)
+    {
+        AllMessages[message.MessageId] = new PeerMessage
+        {
+            PeerId = peer.Id,
+            Message = message.Message
+        };
     }
 }
