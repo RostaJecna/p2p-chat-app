@@ -1,6 +1,10 @@
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
+using Newtonsoft.Json;
+using Peer2P.Library.Connection;
+using Peer2P.Library.Connection.Json;
 using Peer2P.Library.Console.Messaging;
 using Peer2P.Library.Extensions;
 using Peer2P.Services.Connection.Handlers;
@@ -92,7 +96,7 @@ internal static class TcpConnections
                     {
                         LogTcpMessage($"Error handling lost connection: {ex.Message}", LogType.Error);
                     }
-                
+
                 LogCurrentConnections();
 
                 foreach (TcpClient client in clientsToRemove)
@@ -111,10 +115,51 @@ internal static class TcpConnections
         }
     }
 
-
-    public static void StoreClient(TcpClient client, NetworkStream stream)
+    public static async void StoreClientAsync(TcpClient client, NetworkStream stream, Peer peer, CancellationToken cancellationToken)
     {
-        ConnectedClients.Add(client);
-        // throw new NotImplementedException();
+        try
+        {
+            ConnectedClients.Add(client);
+            
+            stream.ReadTimeout = Peer2PSettings.Instance.Timing.ClientTimeoutDelay;
+            
+            byte[] buffer = new byte[4096];
+            
+            int bytesRead;
+            while ((bytesRead = await stream.ReadAsync(buffer, cancellationToken)) > 0)
+            {
+                LogTcpMessage($"Received data from connected client {peer} - {bytesRead} bytes: Decoding...", LogType.Received);
+                string message = Encoding.UTF8.GetString(buffer);
+                message = message.Trim();
+                
+                if (string.IsNullOrWhiteSpace(message))
+                {
+                    LogTcpMessage($"Decoded message from connected client is empty {peer}: Ignoring...", LogType.Warning);
+                    continue;
+                }
+                
+                NewMessage? newMessage = JsonConvert.DeserializeObject<NewMessage>(message);
+
+                if (newMessage == null ||
+                    newMessage.Command != Peer2PSettings.Instance.Communication.Commands.OnNewMessage)
+                {
+                    LogTcpMessage($"Received invalid message from connected client {peer}: {message}", LogType.Received);
+                    continue;
+                }
+                
+                NetworkData.AddMessage(newMessage, peer);
+                
+                LogTcpMessage($"Decoded message from connected client {peer}: [{newMessage.MessageId} - {newMessage.Message}]", LogType.Received);
+                
+                byte[] data = Encoding.UTF8.GetBytes(NetworkData.ReqResPair.EmptyStatus + "\n");
+                await stream.WriteAsync(data, cancellationToken);
+
+                LogTcpMessage($"Sent response on new message to {peer}: {NetworkData.ReqResPair.EmptyStatus}", LogType.Sent);
+            }
+        }
+        catch (Exception ex)
+        {
+            LogTcpMessage($"Error storing client: {ex.Message}", LogType.Error);
+        }
     }
 }
