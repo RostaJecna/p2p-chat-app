@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Peer2P.Library.Console.Messaging;
@@ -17,6 +18,12 @@ internal static class UdpDiscovery
     private static void LogDiscoveryMessage(string message, LogType type)
     {
         Logger.Log(message).Type(type).Protocol(LogProtocol.Udp).Display();
+    }
+
+    public static void SendTo(string message, IPEndPoint remote, Encoding encoding)
+    {
+        byte[] data = encoding.GetBytes(message);
+        UdpClient.Send(data, remote);
     }
 
     public static async void SendPeriodicAsync(string message, CancellationToken cancellationToken)
