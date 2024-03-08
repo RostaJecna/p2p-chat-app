@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Peer2P.Library.Collections;
@@ -87,6 +88,18 @@ internal static class UdpHandler
     private static void HandleCommand(Peer peer)
     {
         TrustedPeers.Store(peer);
+
+        if (!TcpConnections.HasConnectionWith(peer.Address))
+        {
+            UdpDiscovery.SendTo(NetworkData.ReqResPair.Status + "\n", 
+                new IPEndPoint(peer.Address, Peer2PSettings.Instance.Communication.BroadcastPort),
+                Encoding.ASCII);
+            LogUdpMessage($"Sent status response to {peer}: {NetworkData.ReqResPair.Status}", LogType.Sent);
+        }
+        else
+        {
+            LogUdpMessage($"Tcp connection with {peer} already exists.", LogType.Warning);
+        }
     }
 
     private static void HandleStatus(Peer peer, CancellationToken cancellationToken)
