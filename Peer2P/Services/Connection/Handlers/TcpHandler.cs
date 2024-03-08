@@ -107,7 +107,7 @@ internal static class TcpHandler
             LogTcpMessage($"Sent messages to {peer}: [{NetworkData.AllMessages.Count}x]", LogType.Sent);
             LogTcpMessage($"Successful handshake with accepted {peer}: Send to storage...", LogType.Successful);
 
-            TcpConnections.StoreClient(client, stream);
+            TcpConnections.StoreClientAsync(client, stream, peer, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -205,7 +205,7 @@ internal static class TcpHandler
             
             LogTcpMessage($"Successful handshake with created {peer}: Send to storage...", LogType.Successful);
 
-            TcpConnections.StoreClient(client, stream);
+            TcpConnections.StoreClientAsync(client, stream, peer, cancellationToken);
         }
         catch (Exception ex)
         {
