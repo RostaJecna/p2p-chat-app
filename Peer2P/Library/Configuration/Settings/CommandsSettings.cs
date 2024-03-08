@@ -7,6 +7,7 @@ namespace Peer2P.Library.Configuration.Settings;
 internal sealed record CommandsSettings
 {
     private readonly string _onRequest;
+    private readonly string _onNewMessage;
     
     public string OnRequest
     {
@@ -18,6 +19,19 @@ internal sealed record CommandsSettings
                 throw new ArgumentException($"{nameof(OnRequest)} cannot be empty or null.");
             }
             _onRequest = value;
+        }
+    }
+    
+    public string OnNewMessage
+    {
+        get => _onNewMessage;
+        init
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException($"{nameof(OnNewMessage)} cannot be empty or null.");
+            }
+            _onNewMessage = value;
         }
     }
 }
