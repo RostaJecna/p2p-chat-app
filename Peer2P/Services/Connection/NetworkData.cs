@@ -31,7 +31,7 @@ internal static class NetworkData
     
     public static void MergeMessages(IEnumerable<KeyValuePair<long, PeerMessage>> messages)
     {
-        foreach (KeyValuePair<long, PeerMessage> message in messages.Take(100))
+        foreach (KeyValuePair<long, PeerMessage> message in messages.Take(Peer2PSettings.Instance.Communication.MaxMessages))
         {
             AllMessages[message.Key] = message.Value;
         }

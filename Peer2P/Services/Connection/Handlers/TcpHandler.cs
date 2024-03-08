@@ -71,7 +71,7 @@ internal static class TcpHandler
             NetworkStream stream = client.GetStream();
             LogTcpMessage($"Waiting for command from {peer}: ...?", LogType.Expecting);
 
-            byte[] buffer = new byte[1024];
+            byte[] buffer = new byte[256];
 
             Task<int> readTask = stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
             Task timeoutTask = Task.Delay(Peer2PSettings.Instance.Timing.ClientTimeoutDelay, cancellationToken);
@@ -149,8 +149,7 @@ internal static class TcpHandler
             LogTcpMessage($"Sent command to {peer}: {NetworkData.ReqResPair.Command}", LogType.Sent);
             LogTcpMessage($"Waiting for response from {peer}: ...?", LogType.Expecting);
 
-            // TODO: Use memory read buffer
-            byte[] buffer = new byte[12288];
+            byte[] buffer = new byte[Peer2PSettings.Instance.Communication.MessagesBufferSize];
             Task<int> readTask = stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken);
             Task completedClientTask = await Task.WhenAny(readTask, timeoutTask);
 
