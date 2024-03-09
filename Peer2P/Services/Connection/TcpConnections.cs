@@ -124,8 +124,8 @@ internal static class TcpConnections
             stream.ReadTimeout = Peer2PSettings.Instance.Timing.ClientTimeoutDelay;
             
             byte[] buffer = new byte[4096];
-            
             int bytesRead;
+            
             while ((bytesRead = await stream.ReadAsync(buffer, cancellationToken)) > 0)
             {
                 LogTcpMessage($"Received data from connected client {peer} - {bytesRead} bytes: Decoding...", LogType.Received);
@@ -156,6 +156,10 @@ internal static class TcpConnections
 
                 LogTcpMessage($"Sent response on new message to {peer}: {NetworkData.ReqResPair.EmptyStatus}", LogType.Sent);
             }
+            
+            LogTcpMessage($"Timeout waiting new messages from connected client {peer}: Removing...", LogType.Error);
+            stream.Close();
+            client.Close();
         }
         catch (Exception ex)
         {
