@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 
 namespace Peer2P.Library.Connection.Json;
 
-public record NewMessage
+internal record NewMessage
 {
     [JsonProperty("command")] public string? Command { get; init; }
     [JsonProperty("message_id")] public long MessageId { get; init; } 

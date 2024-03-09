@@ -3,7 +3,7 @@ using System.Net.Sockets;
 
 namespace Peer2P.Library.Extensions;
 
-public static class TcpClientExtensions
+internal static class TcpClientExtensions
 {
     public static IPEndPoint? GetIpv4EndPoint(this TcpClient? client)
     {
