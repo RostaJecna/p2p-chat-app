@@ -1,6 +1,5 @@
 using Peer2P;
 using Peer2P.Library.Console.Messaging;
-using Peer2P.Services;
 
 namespace WebApp;
 
@@ -21,11 +20,13 @@ internal abstract class Program
 
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
         builder.Services.AddRazorPages();
+        builder.Services.AddControllers();
 
         WebApplication app = builder.Build();
         app.UseStaticFiles();
         app.UseRouting();
         app.MapRazorPages();
+        app.MapControllers();
         app.Run();
     }
 }
