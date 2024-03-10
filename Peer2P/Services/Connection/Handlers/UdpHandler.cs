@@ -137,7 +137,7 @@ internal static class UdpHandler
         }
     }
     
-    public static string? GetPeerIdByAddress(IPAddress address)
+    public static string? GetPeerIdByAddress(IPAddress? address)
     {
         return TrustedPeers.Keys.FirstOrDefault(peer => peer.Address.Equals(address))?.Id;
     }
