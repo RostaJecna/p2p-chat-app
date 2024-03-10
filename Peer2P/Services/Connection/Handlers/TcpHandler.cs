@@ -48,10 +48,11 @@ internal static class TcpHandler
 
                 LogTcpMessage($"Successfully identified unknown client as: {peer}", LogType.Successful);
                 
-                if (TcpConnections.HasConnectionWith(clientIpEndPoint?.Address))
+                if (TcpConnections.HasConnectionWith(peer.Address))
                 {
                     LogTcpMessage($"Ignored due to duplicate connection attempt: {peer}", LogType.Warning);
-                    return;
+                    acceptedClient.Dispose();
+                    continue;
                 }
 
                 HandleAcceptedClientAsync(acceptedClient, peer, cancellationToken);
@@ -99,7 +100,7 @@ internal static class TcpHandler
 
             LogTcpMessage($"Received command from {peer}: {commandMessage.Command}", LogType.Received);
 
-            string allMessagesWithStatus = NetworkData.SerializeAllMessagesWithStatus();
+            string allMessagesWithStatus = NetworkData.SerializeAllMessages(true, Formatting.None);
 
             byte[] responseBytes = Encoding.UTF8.GetBytes(allMessagesWithStatus + "\n");
             await stream.WriteAsync(responseBytes, cancellationToken);
