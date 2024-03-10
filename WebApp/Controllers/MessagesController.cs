@@ -18,7 +18,9 @@ public class MessagesController : ControllerBase
                 .Type(LogType.Received).Protocol(LogProtocol.Http).Display();
             
             long milliseconds = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            TcpConnections.BroadcastToClients(NetworkData.SerializeNewMessage(milliseconds, message));
+            string jsonMessage = NetworkData.SerializeNewMessage(milliseconds, message);
+            NetworkData.AddMessage(milliseconds, message);
+            TcpConnections.BroadcastToClients(jsonMessage);
 
             return Ok($"Server received GET request with message: {message}");
         }
