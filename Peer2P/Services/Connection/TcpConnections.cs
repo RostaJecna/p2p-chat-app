@@ -43,7 +43,7 @@ public static class TcpConnections
                 byte[] data = Encoding.UTF8.GetBytes(message + "\n");
                 stream.Write(data);
 
-                IPEndPoint? ipEndPoint = (IPEndPoint?)client.Client.RemoteEndPoint;
+                IPEndPoint? ipEndPoint = client.GetIpv4EndPoint();
                 string target = GetTargetEndPointDescription(ipEndPoint);
                 
                 LogTcpMessage($"Sent message to connected client {target}: {message}", LogType.Sent);
