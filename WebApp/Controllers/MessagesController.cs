@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Peer2P.Library.Console.Messaging;
 using Peer2P.Services.Connection;
 
 namespace WebApp.Controllers;
@@ -13,13 +14,18 @@ public class MessagesController : ControllerBase
     {
         try
         {
+            Logger.Log($"Received GET request on /api/send with message: {message}")
+                .Type(LogType.Received).Protocol(LogProtocol.Http).Display();
+            
             long milliseconds = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             TcpConnections.BroadcastToClients(NetworkData.SerializeNewMessage(milliseconds, message));
 
-            return Ok($"Received GET request on /send with message: {message}");
+            return Ok($"Server received GET request with message: {message}");
         }
         catch (Exception ex)
         {
+            Logger.Log($"Error handling GET request on /api/send: {ex.Message}")
+                .Type(LogType.Error).Protocol(LogProtocol.Http).Display();
             return StatusCode(500, $"Error handling request: {ex.Message}");
         }
     }
@@ -29,6 +35,9 @@ public class MessagesController : ControllerBase
     {
         try
         {
+            Logger.Log("Received GET request on /api/messages")
+                .Type(LogType.Received).Protocol(LogProtocol.Http).Display();
+            
             string jsonMessages = NetworkData.SerializeAllMessages(false, Formatting.Indented);
             
             return new ContentResult
@@ -40,6 +49,8 @@ public class MessagesController : ControllerBase
         }
         catch (Exception ex)
         {
+            Logger.Log($"Error handling GET request on /api/messages: {ex.Message}")
+                .Type(LogType.Error).Protocol(LogProtocol.Http).Display();
             return StatusCode(500, $"Error handling request: {ex.Message}");
         }
     }
