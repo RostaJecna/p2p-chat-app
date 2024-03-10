@@ -4,7 +4,7 @@ using Peer2P.Library.Connection.Json;
 
 namespace Peer2P.Services.Connection;
 
-internal static class NetworkData
+public static class NetworkData
 {
     public static Dictionary<long, PeerMessage> AllMessages { get; private set; } = new();
         
@@ -19,9 +19,9 @@ internal static class NetworkData
             Status = Peer2PSettings.Instance.Communication.Status.OnResponse,
             PeerId = Peer2PSettings.Instance.Global.AppPeerId
         }),
-        JsonConvert.SerializeObject(new StatusMessage
+        JsonConvert.SerializeObject(new
         {
-            Status = Peer2PSettings.Instance.Communication.Status.OnResponse,
+            status = Peer2PSettings.Instance.Communication.Status.OnResponse,
         })
     );
     
@@ -36,12 +36,12 @@ internal static class NetworkData
     
     public static void MergeMessages(IEnumerable<KeyValuePair<long, PeerMessage>> messages)
     {
-        foreach (KeyValuePair<long, PeerMessage> message in messages.Take(Peer2PSettings.Instance.Communication.MaxMessages))
+        foreach (KeyValuePair<long, PeerMessage> message in messages)
         {
             AllMessages[message.Key] = message.Value;
         }
 
-        AllMessages = AllMessages.Take(100).ToDictionary(pair => pair.Key, pair => pair.Value);
+        AllMessages = AllMessages.Take(Peer2PSettings.Instance.Communication.MaxMessages).ToDictionary(pair => pair.Key, pair => pair.Value);
     }
     
     public static void AddMessage(NewMessage message, Peer peer)
