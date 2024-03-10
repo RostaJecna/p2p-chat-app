@@ -61,6 +61,15 @@ public static class NetworkData
         };
     }
     
+    public static void AddMessage(long messageId, string message)
+    {
+        AllMessages[messageId] = new PeerMessage
+        {
+            PeerId = Peer2PSettings.Instance.Global.AppPeerId,
+            Message = message
+        };
+    }
+    
     public static string SerializeNewMessage(long messageId, string message)
     {
         return JsonConvert.SerializeObject(new NewMessage
