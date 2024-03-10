@@ -49,7 +49,10 @@ public static class NetworkData
             AllMessages[message.Key] = message.Value;
         }
 
-        AllMessages = AllMessages.Take(Peer2PSettings.Instance.Communication.MaxMessages).ToDictionary(pair => pair.Key, pair => pair.Value);
+        AllMessages = AllMessages
+            .OrderByDescending(pair => pair.Key)
+            .Take(Peer2PSettings.Instance.Communication.MaxMessages)
+            .ToDictionary(pair => pair.Key, pair => pair.Value);
     }
     
     public static void AddMessage(NewMessage message, Peer peer)
