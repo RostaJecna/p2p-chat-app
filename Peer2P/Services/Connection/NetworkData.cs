@@ -25,13 +25,21 @@ public static class NetworkData
         })
     );
     
-    public static string SerializeAllMessagesWithStatus()
+    public static string SerializeAllMessages(bool status, Formatting formatting)
     {
-        return JsonConvert.SerializeObject(new TcpMessages
+        if (status)
         {
-            Status = Peer2PSettings.Instance.Communication.Status.OnResponse,
-            Messages = AllMessages
-        });
+            return JsonConvert.SerializeObject(new TcpMessages
+            {
+                Status = Peer2PSettings.Instance.Communication.Status.OnResponse,
+                Messages = AllMessages
+            }, formatting);
+        }
+        
+        return JsonConvert.SerializeObject(new
+        {
+            messages = AllMessages
+        }, formatting);
     }
     
     public static void MergeMessages(IEnumerable<KeyValuePair<long, PeerMessage>> messages)
@@ -51,5 +59,15 @@ public static class NetworkData
             PeerId = peer.Id,
             Message = message.Message
         };
+    }
+    
+    public static string SerializeNewMessage(long messageId, string message)
+    {
+        return JsonConvert.SerializeObject(new NewMessage
+        {
+            Command = Peer2PSettings.Instance.Communication.Commands.OnNewMessage,
+            MessageId = messageId,
+            Message = message
+        });
     }
 }
