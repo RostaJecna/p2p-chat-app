@@ -5,10 +5,19 @@ using Peer2P.Services.Connection.Handlers;
 
 namespace Peer2P;
 
+/// <summary>
+/// Main class for initializing the Peer2P library.
+/// </summary>
 public static class Peer2PManager
 {
+    /// <summary>
+    /// Tries to initialize the Peer2P library with the provided cancellation token.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token for stopping the initialization process.</param>
+    /// <returns>Returns true if initialization is successful; otherwise, false.</returns>
     public static bool TryInitialize(CancellationToken cancellationToken)
     {
+        // Try loading settings and setting up the network interface
         if (!SettingsLoader.TryLoadFromSection("Peer2P") || !SettingsLoader.TrySetupNetInterface())
         {
             Logger.Log("Failed to load settings for the Peer2P library.")
@@ -25,6 +34,7 @@ public static class Peer2PManager
         
         try
         {
+            // Start necessary services and handlers
             TcpHandler.StartListeningAsync(cancellationToken);
             TcpConnections.StartCheckConnectedClientsAsync(cancellationToken);
             UdpHandler.HandlePeriodicTrustedPeersAsync(cancellationToken);

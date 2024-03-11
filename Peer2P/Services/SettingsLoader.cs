@@ -8,8 +8,16 @@ using Peer2P.Services.Connection;
 
 namespace Peer2P.Services;
 
+/// <summary>
+/// Provides functionality for loading and setting up various settings for the Peer2P library.
+/// </summary>
 internal static class SettingsLoader
 {
+    /// <summary>
+    /// Attempts to load settings from the specified configuration section.
+    /// </summary>
+    /// <param name="sectionName">The name of the configuration section to load settings from.</param>
+    /// <returns><c>true</c> if settings are successfully loaded; otherwise, <c>false</c>.</returns>
     public static bool TryLoadFromSection(string sectionName)
     {
         try
@@ -47,6 +55,10 @@ internal static class SettingsLoader
         }
     }
 
+    /// <summary>
+    /// Attempts to set up the network interface based on the configured interface ID.
+    /// </summary>
+    /// <returns><c>true</c> if the network interface is successfully set up; otherwise, <c>false</c>.</returns>
     public static bool TrySetupNetInterface()
     {
         int interfaceId = Peer2PSettings.Instance.Global.NetworkInterfaceId;
