@@ -38,7 +38,6 @@ public static class Peer2PManager
         {
             Logger.Log($"An unexpected error occurred while starting services in the Peer2P library: {ex.Message}")
                 .Type(LogType.Error).Display();
-            UdpDiscovery.Dispose();
             return false;
         }
     }

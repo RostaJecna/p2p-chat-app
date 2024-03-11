@@ -75,23 +75,4 @@ internal static class UdpDiscovery
             }
         }
     }
-
-    public static void Dispose()
-    {
-        Dispose(true);
-    }
-
-    private static void Dispose(bool disposing)
-    {
-        if (_disposed) return;
-
-        if (disposing)
-        {
-            UdpClient.Dispose();
-            
-            LogDiscoveryMessage($"{nameof(UdpDiscovery)} is disposed.", LogType.Warning);
-        }
-
-        _disposed = true;
-    }
 }
