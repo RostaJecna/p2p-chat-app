@@ -5,10 +5,18 @@ using Peer2P.Services.Connection;
 
 namespace WebApp.Controllers;
 
+/// <summary>
+///     Controller responsible for handling HTTP API requests related to messages.
+/// </summary>
 [Route("api")]
 [ApiController]
 public class MessagesController : ControllerBase
 {
+    /// <summary>
+    ///     Sends a new message to all connected peers.
+    /// </summary>
+    /// <param name="message">The message to send.</param>
+    /// <returns>OK status if the message is sent successfully, or an error status otherwise.</returns>
     [HttpGet("send")]
     public IActionResult Send([FromQuery] string message)
     {
@@ -16,7 +24,7 @@ public class MessagesController : ControllerBase
         {
             Logger.Log($"Received GET request on /api/send with message: {message}")
                 .Type(LogType.Received).Protocol(LogProtocol.Http).Display();
-            
+
             long milliseconds = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             string jsonMessage = NetworkData.SerializeNewMessage(milliseconds, message);
             NetworkData.AddMessage(milliseconds, message);
@@ -31,7 +39,14 @@ public class MessagesController : ControllerBase
             return StatusCode(500, $"Error handling request: {ex.Message}");
         }
     }
-    
+
+    /// <summary>
+    ///     Retrieves all stored messages.
+    /// </summary>
+    /// <returns>
+    ///     JSON-formatted content containing all stored messages,
+    ///     or an error status if there's an issue handling the request.
+    /// </returns>
     [HttpGet("messages")]
     public IActionResult GetMessages()
     {
@@ -39,9 +54,9 @@ public class MessagesController : ControllerBase
         {
             Logger.Log("Received GET request on /api/messages")
                 .Type(LogType.Received).Protocol(LogProtocol.Http).Display();
-            
+
             string jsonMessages = NetworkData.SerializeAllMessages(false, Formatting.Indented);
-            
+
             return new ContentResult
             {
                 Content = jsonMessages,
