@@ -22,7 +22,7 @@ This project implements a decentralized peer-to-peer chat system where each peer
 ## Features
 
 - **Configuration Settings**: The library is configurable, allowing fine-tuning of parameters such as network interface, communication ports, buffer size, maximum message history, command names, and timing intervals for UDP discovery and client timeouts.
-- **Peer Discovery**: Peers dynamically discover others on the network using UDP-based dynamic discovery.
+- **Peer Discovery**: Peers discover others on the network using UDP-based discovery.
 - **Trusted Peers Management**: The library includes a mechanism for managing trusted peers, enabling secure and controlled communication between identified and verified peers.
 - **Chat History Integration**: Each peer retrieves chat message history from discovered peers, merges it with its own history, and saves incoming messages locally.
 - **TCP Communication**: The system utilizes both TCP and UDP for communication. TCP handles reliable data exchange between peers.
@@ -53,12 +53,12 @@ This project implements a decentralized peer-to-peer chat system where each peer
 
 ### 5. TcpConnections
 
-- **Responsibility:** Manages connected clients, their status, and performs periodic checks.
-- **Usage:** Stores connected clients, checks their status, and removes inactive clients.
+- **Responsibility:** Manages connected clients and performs periodic checks.
+- **Usage:** Stores connected clients, checks their status and removes inactive clients.
 
 ### 6. UdpHandler
 
-- **Responsibility:** Handles UDP-based dynamic peer discovery and periodic checks on trusted peers.
+- **Responsibility:** Handles UDP-related operations such as parsing messages, managing trusted peers, and handling commands and statuses.
 - **Usage:** Sends and listens for UDP discovery messages, handles periodic trusted peer checks.
 
 ### 7. UdpDiscovery
