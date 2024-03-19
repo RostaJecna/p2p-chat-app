@@ -3,12 +3,20 @@ using Peer2P.Library.Console.Messaging;
 
 namespace WebApp;
 
+/// <summary>
+/// Entry point for the Peer2P web application.
+/// </summary>
 internal abstract class Program
 {
     private static readonly CancellationTokenSource ApplicationCancellation = new();
     
+    /// <summary>
+    /// Main method for starting the Peer2P web application.
+    /// </summary>
+    /// <param name="args">Command-line arguments.</param>
     public static void Main(string[] args)
     {
+        // Subscribes the Console.WriteLine method to the LogDisplayed event of the Logger.
         Logger.LogDisplayed += Console.WriteLine;
 
         if (!Peer2PManager.TryInitialize(ApplicationCancellation.Token))
